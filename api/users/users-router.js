@@ -21,18 +21,16 @@ router.get('/', (req, res) => {
 
 router.get('/:id', validateUserId, (req, res) => {
   // RETURN THE USER OBJECT
-  User.getById(req.params.id)
+
   res.status(200).json(req.user);
 
   // this needs a middleware to verify user id
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateUser, (req, res) => {
   // RETURN THE NEWLY CREATED USER OBJECT
   const newUser = req.body;
-  if (!newUser.name) {
-    return res.status(400).json({ message: "Please provide user name for the post. " });
-  }
+
   User.insert(newUser)
     .then(result => {
       User.getById(result.id)
@@ -47,9 +45,9 @@ router.post('/', (req, res) => {
   // this needs a middleware to check that the request body is valid
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUserId, (req, res) => {
   // RETURN THE FRESHLY UPDATED USER OBJECT
-  const id = req.params.id;
+  const id = req.user.id;
   const changes = req.body;
   if (!changes.name) {
     return res.status(400).json({ message: "Please provide user name for the change." });
@@ -72,9 +70,9 @@ router.put('/:id', (req, res) => {
   // and another middleware to check that the request body is valid
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUserId, (req, res) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
-  const id = req.params.id;
+  const id = req.user.id;
   User.remove(id)
     .then(id => {
       if (!id) {
@@ -89,9 +87,9 @@ router.delete('/:id', (req, res) => {
   // this needs a middleware to verify user id
 });
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, validatePost, (req, res) => {
   // RETURN THE ARRAY OF USER POSTS
-  const userId = req.params.id;
+  const userId = req.user.id;
   User.getUserPosts(userId)
     .then(posts => {
       if (posts.length === 0) {
@@ -102,9 +100,9 @@ router.get('/:id/posts', (req, res) => {
   // this needs a middleware to verify user id
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
   // RETURN THE NEWLY CREATED USER POST
-  const userId = req.params.id;
+  const userId = req.user.id;
   const text = req.body.text;
   Post.insert({ user_id: userId, text })
     .then(createdPost => {
