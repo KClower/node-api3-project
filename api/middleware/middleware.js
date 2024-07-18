@@ -1,6 +1,4 @@
-const userModel = require('../users/users-model.js');
-
-
+const usersModel = require('../users/users-model.js');
 
 function logger(req, res, next) {
   // DO YOUR MAGIC
@@ -13,23 +11,35 @@ function logger(req, res, next) {
 function validateUserId(req, res, next) {
   // DO YOUR MAGIC
   const id = req.params.id;
-  User.getById(id)
-    .then(user => {
-      if (user) {
-        res.status(200).json(req.user);
-      } else {
-        res.status(404).json({ message: "The user with the specified ID does not exist." });
+  usersModel.getById(id)
+    .then(foundUser => {
+
+      if (!foundUser) {
+        return res.status(404).json({ message: "user not found" })
       }
+      req.user = foundUser
+      next()
     })
-  next();
+    .catch(error => {
+      console.log(error);
+      return res.status(500).json({ message: "Internal server error." })
+    })
+
 }
 
 function validateUser(req, res, next) {
   // DO YOUR MAGIC
+  if (!req.body.name)
+    return res.status(400).json({ message: "missing required name field" })
+  next()
 }
+
 
 function validatePost(req, res, next) {
   // DO YOUR MAGIC
+  if (!req.body.text)
+    return res.status(400).json({ message: "missing required text field" })
+  next()
 }
 
 // do not forget to expose these functions to other modules
